@@ -655,6 +655,30 @@ class EDIExchangeRecord(models.Model):
             query = self.browse(result)._as_query()
         return query
 
+    @api.model
+    def _read_group(
+        self,
+        domain,
+        groupby=(),
+        aggregates=(),
+        having=(),
+        offset=0,
+        limit=None,
+        order=None,
+    ):
+        if not self.env.is_superuser():
+            # grouped counts bypass _search: apply the same access filter
+            domain = [("id", "in", list(self._search(domain)))]
+        return super()._read_group(
+            domain,
+            groupby=groupby,
+            aggregates=aggregates,
+            having=having,
+            offset=offset,
+            limit=limit,
+            order=order,
+        )
+
     def read(self, fields=None, load="_classic_read"):
         """Override to explicitely call check_access_rule, that is not called
         by the ORM. It instead directly fetches ir.rules and apply them."""
